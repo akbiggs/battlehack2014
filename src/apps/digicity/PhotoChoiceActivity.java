@@ -1,6 +1,7 @@
 package apps.digicity;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.View;
@@ -51,6 +52,10 @@ public class PhotoChoiceActivity extends Activity {
 	}
 	
 	public void takePhoto() {
-		// STUB: GO TO ADAM'S ACTIVITY
+		Intent switchActivity = new Intent(PhotoChoiceActivity.this, CoolActivity.class);
+		PhotoChoiceActivity.this.startActivity(switchActivity);
+		PhotoChoiceActivity.this.finish();
+		
+		overridePendingTransition(R.anim.mainfadein, R.anim.splashfadeout);
 	}
 }

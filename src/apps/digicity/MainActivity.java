@@ -2,6 +2,9 @@ package apps.digicity;
 
 import java.util.Calendar;
 import java.util.Date;
+import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.LoaderCallbackInterface;
+import org.opencv.android.OpenCVLoader;
 
 import android.app.Activity;
 import android.app.ActionBar;

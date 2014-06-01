@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:android1="http://schemas.android.com/apk/res/android"
+    android:background="@drawable/gradientbg" xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <RelativeLayout
+        android1:id="@+id/evaluationHeader"
+        android1:layout_width="match_parent"
+        android1:layout_height="60dp"
+        android1:background="#13A89E" >
+
+       <TextView
+           android1:id="@+id/evaluationHeaderSuccess"
+           style="@style/Theme.CursiveText"
+           android1:layout_width="wrap_content"
+           android1:layout_height="wrap_content"
+           android1:layout_centerHorizontal="true"
+           android1:text="Success!"
+           android1:layout_marginTop="6dp"
+           android1:textSize="13.5pt" />
+		<TextView
+           android1:id="@+id/evaluationHeaderFailure"
+           style="@style/Theme.CursiveText"
+           android1:layout_width="wrap_content"
+           android1:layout_height="wrap_content"
+           android1:layout_centerHorizontal="true"
+           android1:text="Failure..."
+           android1:layout_marginTop="6dp"
+           android1:textSize="13.5pt" />
+
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/failureText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        style="@style/Theme.CursiveText"
+        android:text="The photo you took didn't match. :("/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        >
+      <ImageView
+        android:id="@+id/successImageUnrevealed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+       	android:src="@drawable/camera" />
+
+     <ImageView
+        android:id="@+id/successImageRevealed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:alpha="0.0"
+        android:src="@drawable/camera" />
+       
+    </RelativeLayout>
+    
+</RelativeLayout>

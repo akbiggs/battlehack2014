@@ -30,12 +30,11 @@ public class SplashActivity extends Activity {
 		TextStylizer.makeCursive(this, R.id.title_text);
 		TextStylizer.applyAnimation(this, R.id.title_text, R.anim.splashtextfade);
 		
-		this.loadSomeStuff();
-		
 		Runnable task = new Runnable() {
 			
 			@Override
 			public void run() {
+				SplashActivity.this.loadSomeStuff();
 				Intent switchActivity = new Intent(SplashActivity.this, PhotoChoiceActivity.class);
 				SplashActivity.this.startActivity(switchActivity);
 				SplashActivity.this.finish();
@@ -48,5 +47,6 @@ public class SplashActivity extends Activity {
 	}
 
 	private void loadSomeStuff() {
+		PhotoInfo.initialize(getAssets(), this.getApplicationContext());
 	}
 }

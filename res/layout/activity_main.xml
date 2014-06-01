@@ -26,8 +26,6 @@
         android:layout_width="346dp"
         android:layout_height="92dp"
         android:layout_marginRight="62dp"
-        android:layout_x="95dp"
-        android:layout_y="251dp"
         android:maxWidth="100dp"
         android:src="@drawable/ic_launcher" />
 

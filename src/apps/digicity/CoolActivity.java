@@ -20,6 +20,7 @@ import org.opencv.core.MatOfByte;
 import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.Point;
+import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.features2d.*;
 import org.opencv.imgproc.Imgproc;
@@ -29,14 +30,15 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.hardware.Camera.Size;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 
@@ -80,6 +82,12 @@ public class CoolActivity extends Activity implements CvCameraViewListener2 {
 	ImageView imageView;
 	TextView textView;
 	String debugText = "";
+	
+	Bitmap cameraBitmap;
+	Bitmap exampleBitmap;
+	
+	ImageView innerImage;
+	ImageView outerImage;
 
 	 @Override
 	 public void onCreate(Bundle savedInstanceState) {
@@ -95,6 +103,21 @@ public class CoolActivity extends Activity implements CvCameraViewListener2 {
 	     imageView.setImageResource(R.drawable.ic_launcher);
 	     imageView.bringToFront();
 	     textView = (TextView) this.findViewById(R.id.text);
+	     
+	     Display display = getWindowManager().getDefaultDisplay();
+	     
+	     android.graphics.Point size = new android.graphics.Point();
+	     display.getSize(size);
+	     size.x -= 60;
+	     
+	     RelativeLayout lay = (RelativeLayout) this.findViewById(R.id.cameraview);
+	     lay.getLayoutParams().width = size.x;
+	     lay.getLayoutParams().height = size.x;
+	     
+	     innerImage =(ImageView) this.findViewById(R.id.inside_imageview);
+	     outerImage =(ImageView) this.findViewById(R.id.outside_imageview);
+	     
+	     outerImage.setAlpha(0.4f);
 	 }
 
 	 @Override
@@ -118,9 +141,11 @@ public class CoolActivity extends Activity implements CvCameraViewListener2 {
      }
 
 	 public void onCameraViewStarted(int width, int height) {
+		 
 	 }
 
 	 public void onCameraViewStopped() {
+		 
 	 }
 
 	 public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
@@ -128,12 +153,16 @@ public class CoolActivity extends Activity implements CvCameraViewListener2 {
 		 org.opencv.core.Size size = new org.opencv.core.Size(200, 200);
 		 org.opencv.core.Size kernel = new org.opencv.core.Size(2, 2);
 		 Mat image = inputFrame.gray();
+		 rotateImage(image);
 		 
 		 try {
+			 int s = java.lang.Math.min(image.width(), image.height());
+			 Rect rectCrop = new Rect((image.width() - s) / 2, (image.height() - s) / 2, s, s);
+			 image = new Mat(image, rectCrop);
 			 Imgproc.resize(image, image, size);
 		 	 Imgproc.blur(image, image, kernel);
 		 }
-		 catch (CvException e) {Log.d("Exception",e.getMessage());}
+		 catch (CvException e) {Log.d("Exception",e.getMessage()); return inputFrame.rgba();}
 		 
 		 if (this.scheduleSave) {
 			 this.scheduleSave = false;
@@ -149,6 +178,8 @@ public class CoolActivity extends Activity implements CvCameraViewListener2 {
 			 this.savedImage = image;
 			 this.savedKeypoints = keypoints;
 			 this.savedDescriptors = descriptors;
+			 
+			 this.exampleBitmap = this.MakeBitmapGray(savedImage, 4);
 		 }
 		 
 		 if (this.savedImage != null) {
@@ -176,16 +207,13 @@ public class CoolActivity extends Activity implements CvCameraViewListener2 {
 			 	 if (match.distance < 200)
 			 		 goodMatches++;
 			 }
-
-			 newBitmap = null;
-			 Mat tmp = new Mat (matchImage.height(), matchImage.width(), CvType.CV_8U, new Scalar(4));
 			 
+			 this.cameraBitmap = MakeBitmapGray(image, 4);
+
 			 // Build a bitmap and update the UI
 			 try {
-			     Imgproc.cvtColor(matchImage, tmp, Imgproc.COLOR_RGB2BGRA);
-			     newBitmap = Bitmap.createBitmap(tmp.cols(), tmp.rows(), Bitmap.Config.ARGB_8888);
-			     Utils.matToBitmap(tmp, newBitmap);
 			     
+				 newBitmap = MakeBitmap(matchImage, 4);
 			     debugText = " " +goodMatches+ " / " + matches.total();
 			     //debugText = "total Distance: " + totalDistance;
 
@@ -208,7 +236,7 @@ public class CoolActivity extends Activity implements CvCameraViewListener2 {
 				 image.put((int)point.pt.y, (int)point.pt.x, white ); 
 			 }*/
 			 
-			 return inputFrame.rgba();
+			 
 		 } else {
 			 
 			 FeatureDetector detector = FeatureDetector.create(FeatureDetector.ORB);
@@ -221,11 +249,50 @@ public class CoolActivity extends Activity implements CvCameraViewListener2 {
 				 KeyPoint point = _list.get(i);
 				 image.put((int)point.pt.y, (int)point.pt.x, white ); 
 			 }
-			 
-			 return inputFrame.rgba();
+			 //try {
+				 cameraBitmap = MakeBitmapGray( image, 4);
+			// }
+			 //catch (CvException e) {Log.d("Exception",e.getMessage());}
 		 }
 		 
-	     // return inputFrame.rgba();
+	     this.runOnUiThread(new Runnable() {
+	         @Override
+	         public void run() {
+	        	 if (cameraBitmap != null)
+	        		 innerImage.setImageBitmap(cameraBitmap);
+	        	 if (exampleBitmap != null) 
+	        		 outerImage.setImageBitmap(exampleBitmap);
+	        }
+	     });
+		 
+	     return inputFrame.rgba();
 	 }
 	 
+	 private Bitmap MakeBitmap(Mat matchImage, int channels) {
+		 Mat tmp = new Mat (matchImage.height(), matchImage.width(), CvType.CV_8U, new Scalar(channels));
+	     Imgproc.cvtColor(matchImage, tmp, Imgproc.COLOR_RGB2BGRA);
+	     Bitmap newBitmap = Bitmap.createBitmap(tmp.cols(), tmp.rows(), Bitmap.Config.ARGB_8888);
+	     Utils.matToBitmap(tmp, newBitmap);
+	     return newBitmap;
+	 }
+	 
+	 private Bitmap MakeBitmapGray(Mat matchImage, int channels) {
+		 Mat tmp = new Mat (matchImage.height(), matchImage.width(), CvType.CV_8U, new Scalar(channels));
+	     Imgproc.cvtColor(matchImage, tmp, Imgproc.COLOR_GRAY2BGR);
+	     Bitmap newBitmap = Bitmap.createBitmap(tmp.cols(), tmp.rows(), Bitmap.Config.ARGB_8888);
+	     Utils.matToBitmap(tmp, newBitmap);
+	     return newBitmap;
+	     
+	     
+	 }
+
+	 private void rotateImage(Mat source)
+	 {
+		 Core.flip(source, source, 1);
+		 Core.transpose(source, source);
+		 //
+		 //Mat rot = Imgproc.getRotationMatrix2D(new Point(source.size().width / 2,  source.size().height / 2), angle, 1);
+		 //Imgproc.warpAffine(source, source, rot, source.size());
+	 }
 }
+

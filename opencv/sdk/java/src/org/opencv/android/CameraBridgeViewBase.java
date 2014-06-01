@@ -298,7 +298,7 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
     private void checkCurrentState() {
         int targetState;
 
-        if (mEnabled && mSurfaceExist && getVisibility() == VISIBLE) {
+        if (mEnabled && mSurfaceExist) {
             targetState = STARTED;
         } else {
             targetState = STOPPED;

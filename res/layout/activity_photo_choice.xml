@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/gradientbg"
+    android:layout_gravity='center_vertical' 
+    tools:context="apps.digicity.PhotoChoiceActivity" xmlns:android1="http://schemas.android.com/apk/res/android">
+
+    <RelativeLayout
+        android1:id="@+id/questHeader"
+        android1:layout_width="match_parent"
+        android1:layout_height="60dp"
+        android1:background="#13A89E" >
+
+       <TextView
+           android1:id="@+id/questHeaderText"
+           style="@style/Theme.CursiveText"
+           android1:layout_width="wrap_content"
+           android1:layout_height="wrap_content"
+           android1:layout_centerHorizontal="true"
+           android1:text="Quest"
+           android1:layout_marginTop="6dp"
+           android1:textSize="13.5pt" />
+
+    </RelativeLayout>
+
+    <TextView
+        android1:id="@+id/questDescriptionText"
+        style="@style/Theme.CursiveText"
+        android1:layout_width="wrap_content"
+        android1:layout_height="wrap_content"
+        android1:layout_below="@+id/questHeader"
+        android1:layout_centerHorizontal="true"
+        android1:layout_marginTop='20dp'
+        android1:text="Recreate This Photo"
+        android1:textSize="10pt" />
+
+    <ImageView
+        android1:id="@+id/imageView1"
+        android1:layout_width="wrap_content"
+        android1:layout_height="wrap_content"
+        android1:layout_alignParentBottom="true"
+        android1:layout_below="@+id/textView1"
+        android1:src="@drawable/marsoutside" />
+
+</RelativeLayout>

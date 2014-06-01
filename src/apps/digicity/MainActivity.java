@@ -1,11 +1,18 @@
 package apps.digicity;
 
+import java.util.Calendar;
+import java.util.Date;
+
 import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.provider.MediaStore;
+import android.location.Location;
+import android.location.LocationManager;
+import android.location.Criteria;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Debug;
@@ -16,14 +23,18 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.os.Build;
 
 public class MainActivity extends Activity {
 
     private ImageView newImageView;
     private ImageView requiredImageView;
+    private LocationManager locationManager;
+    private MyLocationListener distanceListener;
+    public static TextView distanceView;
     
-	@Override
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -34,7 +45,17 @@ public class MainActivity extends Activity {
                     .commit();
         }
         
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        
         this.newImageView = (ImageView) this.findViewById(R.id.photoResult);
+        this.requiredImageView = (ImageView) this.findViewById(R.id.photoRequired);
+        distanceView = (TextView) this.findViewById(R.id.distance);
+        
+        distanceListener = new MyLocationListener();
+        distanceListener.distanceText = distanceView;
+        locationManager = (LocationManager) this.getApplicationContext().getSystemService(LOCATION_SERVICE);
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
+        		50, 0.1f, distanceListener);
     }
 	
     @Override

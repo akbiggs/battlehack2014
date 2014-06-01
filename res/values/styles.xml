@@ -1,10 +1,11 @@
-<resources>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!--
         Base application theme, dependent on API level. This theme is replaced
         by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
     -->
     <style name="AppBaseTheme" parent="android:Theme.Light">
+        <item name="android:background">@drawable/gradientbg</item>
         <!--
             Theme customizations available in newer API levels can go in
             res/values-vXX/styles.xml, while customizations related to
@@ -14,7 +15,25 @@
 
     <!-- Application theme. -->
     <style name="AppTheme" parent="AppBaseTheme">
+        <item name="android:background">@drawable/gradientbg</item>
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
     </style>
+    
+    <style name="Theme.Transparent" parent="android:Theme">
+    	<item name="android:windowIsTranslucent">true</item>
+    	<item name="android:windowBackground">@android:color/transparent</item>
+    	<item name="android:windowContentOverlay">@null</item>
+    	<item name="android:windowNoTitle">true</item>
+    	<item name="android:windowIsFloating">true</item>
+    	<item name="android:backgroundDimEnabled">false</item>
+  	</style>
 
+    <style name="Theme.CursiveText" parent="@android:style/TextAppearance">
+        <item name="android:shadowColor">#3F495388</item>
+        <item name="android:shadowDx">1</item>
+        <item name="android:shadowDy">1</item>
+        <item name="android:shadowRadius">1</item>
+        <item name='android:textColor'>#F2E7DA</item>
+        <item name='android:textStyle'>bold</item>
+    </style>
 </resources>

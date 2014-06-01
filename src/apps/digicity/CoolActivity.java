@@ -2,6 +2,9 @@ package apps.digicity;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -68,6 +71,7 @@ public class CoolActivity extends Activity implements CvCameraViewListener2 {
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_6, this, mLoaderCallback);
     }
     
+    final ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
     
 	private CameraBridgeViewBase mOpenCvCameraView;
 	
@@ -88,7 +92,11 @@ public class CoolActivity extends Activity implements CvCameraViewListener2 {
 	
 	ImageView innerImage;
 	ImageView outerImage;
+	
+	boolean wait = false;
 
+	int completed = 0;
+	
 	 @Override
 	 public void onCreate(Bundle savedInstanceState) {
 	     Log.i("TAG", "called onCreate");
@@ -149,7 +157,6 @@ public class CoolActivity extends Activity implements CvCameraViewListener2 {
 	 }
 
 	 public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-		
 		 org.opencv.core.Size size = new org.opencv.core.Size(200, 200);
 		 org.opencv.core.Size kernel = new org.opencv.core.Size(2, 2);
 		 Mat image = inputFrame.gray();
@@ -179,10 +186,20 @@ public class CoolActivity extends Activity implements CvCameraViewListener2 {
 			 this.savedKeypoints = keypoints;
 			 this.savedDescriptors = descriptors;
 			 
+			 this.completed = 0;
 			 this.exampleBitmap = this.MakeBitmapGray(savedImage, 4);
+			 
+			 wait = true;
+			 exec.schedule(new Runnable(){
+				    @Override
+				    public void run(){
+				        wait = false;
+				    }
+				}, 1, TimeUnit.SECONDS);
+			 return inputFrame.rgba();
 		 }
 		 
-		 if (this.savedImage != null) {
+		 if (this.savedImage != null && !this.wait) {
 
 			 FeatureDetector detector = FeatureDetector.create(FeatureDetector.FAST);
 			 MatOfKeyPoint keypoints = new MatOfKeyPoint();
@@ -209,12 +226,30 @@ public class CoolActivity extends Activity implements CvCameraViewListener2 {
 			 }
 			 
 			 this.cameraBitmap = MakeBitmapGray(image, 4);
+			 
+			 float percent = (float)goodMatches / (float)matches.total();
+			 if ( percent > 0.08) {
+				 this.completed += 5;
+			 }
+			 if (percent > 0.12) {
+				 this.completed += 15;
+			 }
+			 if (percent > 0.16) {
+				 this.completed += 5;
+			 }
+			 if (percent > 0.30) {
+				 this.completed += 15;
+			 }
+			 if (percent > 0.5) {
+				 this.completed += 100;
+			 }
 
 			 // Build a bitmap and update the UI
 			 try {
 			     
 				 newBitmap = MakeBitmap(matchImage, 4);
-			     debugText = " " +goodMatches+ " / " + matches.total();
+			     debugText = Integer.toString(this.completed) + " / " + 100;
+
 			     //debugText = "total Distance: " + totalDistance;
 
 			     this.runOnUiThread(new Runnable() {

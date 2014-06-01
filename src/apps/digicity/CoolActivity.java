@@ -30,6 +30,7 @@ import org.opencv.imgproc.Imgproc;
 
 import android.R.string;
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -55,6 +56,11 @@ public class CoolActivity extends Activity implements CvCameraViewListener2 {
                 {
                     Log.i("TAG", "OpenCV loaded successfully");
                     mOpenCvCameraView.enableView();
+	           	    /*Mat mat = new Mat();
+	        	    Utils.bitmapToMat(PhotoInfo.details.get(0).image, mat);
+	        	    Imgproc.cvtColor(mat, mat, Imgproc.COLOR_RGB2GRAY);
+	        	    PrepareInput(mat);
+	        	    SetExampeImage(mat);*/
                 } break;
                 default:
                 {
@@ -126,6 +132,8 @@ public class CoolActivity extends Activity implements CvCameraViewListener2 {
 	     outerImage =(ImageView) this.findViewById(R.id.outside_imageview);
 	     
 	     outerImage.setAlpha(0.4f);
+	   
+	    
 	 }
 
 	 @Override
@@ -157,37 +165,18 @@ public class CoolActivity extends Activity implements CvCameraViewListener2 {
 	 }
 
 	 public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-		 org.opencv.core.Size size = new org.opencv.core.Size(200, 200);
-		 org.opencv.core.Size kernel = new org.opencv.core.Size(2, 2);
-		 Mat image = inputFrame.gray();
-		 rotateImage(image);
-		 
+		 Mat image;
 		 try {
-			 int s = java.lang.Math.min(image.width(), image.height());
-			 Rect rectCrop = new Rect((image.width() - s) / 2, (image.height() - s) / 2, s, s);
-			 image = new Mat(image, rectCrop);
-			 Imgproc.resize(image, image, size);
-		 	 Imgproc.blur(image, image, kernel);
-		 }
-		 catch (CvException e) {Log.d("Exception",e.getMessage()); return inputFrame.rgba();}
+		 image = PrepareInput(inputFrame.gray());
+	 }
+	 catch (CvException e) {Log.d("Exception",e.getMessage()); return inputFrame.rgba();}
 		 
 		 if (this.scheduleSave) {
 			 this.scheduleSave = false;
 			 
-			 FeatureDetector detector = FeatureDetector.create(FeatureDetector.FAST);
-			 MatOfKeyPoint keypoints = new MatOfKeyPoint();
-			 detector.detect(image, keypoints);
-			 
-			 DescriptorExtractor extractor = DescriptorExtractor.create(DescriptorExtractor.ORB);
-			 Mat descriptors = new Mat();
-			 extractor.compute(image, keypoints, descriptors);
-			 
-			 this.savedImage = image;
-			 this.savedKeypoints = keypoints;
-			 this.savedDescriptors = descriptors;
+			 SetExampeImage(image);
 			 
 			 this.completed = 0;
-			 this.exampleBitmap = this.MakeBitmapGray(savedImage, 4);
 			 
 			 wait = true;
 			 exec.schedule(new Runnable(){
@@ -248,7 +237,14 @@ public class CoolActivity extends Activity implements CvCameraViewListener2 {
 			 try {
 			     
 				 newBitmap = MakeBitmap(matchImage, 4);
-			     debugText = Integer.toString(this.completed) + " / " + 100;
+			     debugText = "Try and match the scene with the overlayed image...\n" + Integer.toString(this.completed) + " / " + 100;
+			     
+			     if (this.completed > 100) {
+			    	 	PhotoInfo.photoSuccessful = true;
+						Intent switchActivity = new Intent(CoolActivity.this, EvaluationActivity.class);
+						CoolActivity.this.startActivity(switchActivity);
+						CoolActivity.this.finish();
+			     }
 
 			     //debugText = "total Distance: " + totalDistance;
 
@@ -258,6 +254,7 @@ public class CoolActivity extends Activity implements CvCameraViewListener2 {
 					     imageView.setImageBitmap(newBitmap);
 					     imageView.bringToFront();
 					     textView.setText(debugText);
+					     
 			        }
 			     });
 			 }
@@ -302,6 +299,37 @@ public class CoolActivity extends Activity implements CvCameraViewListener2 {
 		 
 	     return inputFrame.rgba();
 	 }
+
+	private Mat PrepareInput(Mat input) {
+		 org.opencv.core.Size size = new org.opencv.core.Size(200, 200);
+		 org.opencv.core.Size kernel = new org.opencv.core.Size(2, 2);
+		 Mat image = input;
+		 rotateImage(image);
+		 
+		 int s = java.lang.Math.min(image.width(), image.height());
+		 Rect rectCrop = new Rect((image.width() - s) / 2, (image.height() - s) / 2, s, s);
+		 image = new Mat(image, rectCrop);
+		 Imgproc.resize(image, image, size);
+		 Imgproc.blur(image, image, kernel);
+
+		return image;
+	}
+
+	private void SetExampeImage(Mat image) {
+		 FeatureDetector detector = FeatureDetector.create(FeatureDetector.FAST);
+		 MatOfKeyPoint keypoints = new MatOfKeyPoint();
+		 detector.detect(image, keypoints);
+		 
+		 DescriptorExtractor extractor = DescriptorExtractor.create(DescriptorExtractor.ORB);
+		 Mat descriptors = new Mat();
+		 extractor.compute(image, keypoints, descriptors);
+		 
+		 this.savedImage = image;
+		 this.savedKeypoints = keypoints;
+		 this.savedDescriptors = descriptors;
+		 
+		 this.exampleBitmap = this.MakeBitmapGray(savedImage, 4);
+	}
 	 
 	 private Bitmap MakeBitmap(Mat matchImage, int channels) {
 		 Mat tmp = new Mat (matchImage.height(), matchImage.width(), CvType.CV_8U, new Scalar(channels));
